@@ -32,7 +32,6 @@ ASSUME NisNat ==    (N \in Nat) /\ (N > 0)
 ASSUME AckBotDef == BOT \notin NodeSet /\ ACK \notin NodeSet /\ BOT # ACK
 ASSUME ExistProc == PROCESSES # {}
 
-varlist == <<pc, F, u, v, w, c, d, M, ret>>
 PCSet ==  {"0", "F1", "FR", "U1", "UR", "S1", "S2", "S3", "S4", "SR"}
 OpSet ==  [PROCESSES -> {"F", "U", "S", BOT}]
 ArgSet == [PROCESSES -> {BOT} \cup NodeSet \cup NodeSet \X NodeSet]
@@ -201,15 +200,11 @@ Step(p) ==  \/  F1(p)
             \/  S4(p)
             \/  SR(p)
             \/  Decide(p)
-            
 
-Next ==     \E p \in PROCESSES: Step(p)
-
-SameSetSpec == Init /\ [][Next]_varlist
 
           
 
 =============================================================================
 \* Modification History
-\* Last modified Sun Nov 02 03:06:05 IST 2025 by karunram
+\* Last modified Sun Nov 02 03:04:49 IST 2025 by karunram
 \* Created Sun Nov 02 01:20:50 IST 2025 by karunram

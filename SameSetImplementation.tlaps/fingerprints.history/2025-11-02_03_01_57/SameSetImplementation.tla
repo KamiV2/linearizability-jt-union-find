@@ -32,33 +32,14 @@ ASSUME NisNat ==    (N \in Nat) /\ (N > 0)
 ASSUME AckBotDef == BOT \notin NodeSet /\ ACK \notin NodeSet /\ BOT # ACK
 ASSUME ExistProc == PROCESSES # {}
 
-varlist == <<pc, F, u, v, w, c, d, M, ret>>
 PCSet ==  {"0", "F1", "FR", "U1", "UR", "S1", "S2", "S3", "S4", "SR"}
 OpSet ==  [PROCESSES -> {"F", "U", "S", BOT}]
 ArgSet == [PROCESSES -> {BOT} \cup NodeSet \cup NodeSet \X NodeSet]
-ReturnSet == [PROCESSES -> {ACK, BOT, TRUE, FALSE} \cup NodeSet]
+ReturnSet == [PROCESSES -> {ACK} \cup NodeSet \cup {TRUE, FALSE}]
 UFAbsSet ==  {A \in [NodeSet -> NodeSet]: \A i \in NodeSet: A[A[i]] = A[i]}
 StateSet == UFAbsSet
 
 Configs == [sigma: StateSet, ret: ReturnSet, op: OpSet, arg: ArgSet]
-
-InitState == [i \in NodeSet |-> i]
-InitF ==     [i \in NodeSet |-> i]
-InitRet ==   [p \in PROCESSES |-> BOT]
-InitOp ==    [p \in PROCESSES |-> BOT]
-InitArg ==   [p \in PROCESSES |-> BOT]
-
-
-\* Initial state of algorithm
-Init ==         /\ pc = [p \in PROCESSES |-> "0"]
-                /\ F  = InitF
-                /\ u \in [PROCESSES -> NodeSet]
-                /\ v \in [PROCESSES -> NodeSet]
-                /\ w \in [PROCESSES -> NodeSet]
-                /\ c \in [PROCESSES -> NodeSet]
-                /\ d \in [PROCESSES -> NodeSet]
-                /\ ret \in [PROCESSES -> {ACK, TRUE, FALSE} \cup NodeSet]
-                /\ M = {[sigma |-> InitState,  ret |-> InitRet, op |-> InitOp, arg |-> InitArg]}
 
 
 
@@ -201,15 +182,11 @@ Step(p) ==  \/  F1(p)
             \/  S4(p)
             \/  SR(p)
             \/  Decide(p)
-            
 
-Next ==     \E p \in PROCESSES: Step(p)
-
-SameSetSpec == Init /\ [][Next]_varlist
 
           
 
 =============================================================================
 \* Modification History
-\* Last modified Sun Nov 02 03:06:05 IST 2025 by karunram
+\* Last modified Sun Nov 02 03:01:55 IST 2025 by karunram
 \* Created Sun Nov 02 01:20:50 IST 2025 by karunram

@@ -48,13 +48,14 @@ LEMMA InitTypeOK == Init => TypeOK
   <1>6. Valid_c
     BY DEF Valid_c
   <1>7. Valid_d
-    BY DEF Valid_d
+    OBVIOUS
   <1>8. Valid_ret
-    BY DEF Valid_ret
+    OBVIOUS
   <1>9. Valid_M
-    BY DEF Init, Valid_M, Configs, InitRet, InitOp, InitState, InitArg, StateSet, ReturnSet, OpSet, ArgSet, UFAbsSet
+    BY DEF Init, Valid_M, Configs, InitRet, InitOp, InitState, InitArg, StateSet, ReturnSet, OpSet, ArgSet
   <1>10. QED
     BY <1>1, <1>2, <1>3, <1>4, <1>5, <1>6, <1>7, <1>8, <1>9 DEF TypeOK
+    
     
 LEMMA NextTypeOK == TypeOK /\ [Next]_varlist => TypeOK'
   
@@ -64,5 +65,5 @@ THEOREM TypeSafety == SameSetSpec => []TypeOK
 
 =============================================================================
 \* Modification History
-\* Last modified Sun Nov 02 03:30:56 IST 2025 by karunram
+\* Last modified Sun Nov 02 03:27:52 IST 2025 by karunram
 \* Created Fri Apr 04 00:28:14 EDT 2025 by karunram

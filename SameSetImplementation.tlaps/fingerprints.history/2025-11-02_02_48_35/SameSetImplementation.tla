@@ -32,47 +32,21 @@ ASSUME NisNat ==    (N \in Nat) /\ (N > 0)
 ASSUME AckBotDef == BOT \notin NodeSet /\ ACK \notin NodeSet /\ BOT # ACK
 ASSUME ExistProc == PROCESSES # {}
 
-varlist == <<pc, F, u, v, w, c, d, M, ret>>
 PCSet ==  {"0", "F1", "FR", "U1", "UR", "S1", "S2", "S3", "S4", "SR"}
 OpSet ==  [PROCESSES -> {"F", "U", "S", BOT}]
 ArgSet == [PROCESSES -> {BOT} \cup NodeSet \cup NodeSet \X NodeSet]
-ReturnSet == [PROCESSES -> {ACK, BOT, TRUE, FALSE} \cup NodeSet]
+ReturnSet == [PROCESSES -> {ACK} \cup NodeSet \cup {TRUE, FALSE}]
 UFAbsSet ==  {A \in [NodeSet -> NodeSet]: \A i \in NodeSet: A[A[i]] = A[i]}
 StateSet == UFAbsSet
 
 Configs == [sigma: StateSet, ret: ReturnSet, op: OpSet, arg: ArgSet]
 
-InitState == [i \in NodeSet |-> i]
-InitF ==     [i \in NodeSet |-> i]
-InitRet ==   [p \in PROCESSES |-> BOT]
-InitOp ==    [p \in PROCESSES |-> BOT]
-InitArg ==   [p \in PROCESSES |-> BOT]
-
-
-\* Initial state of algorithm
-Init ==         /\ pc = [p \in PROCESSES |-> "0"]
-                /\ F  = InitF
-                /\ u \in [PROCESSES -> NodeSet]
-                /\ v \in [PROCESSES -> NodeSet]
-                /\ w \in [PROCESSES -> NodeSet]
-                /\ c \in [PROCESSES -> NodeSet]
-                /\ d \in [PROCESSES -> NodeSet]
-                /\ ret \in [PROCESSES -> {ACK, TRUE, FALSE} \cup NodeSet]
-                /\ M = {[sigma |-> InitState,  ret |-> InitRet, op |-> InitOp, arg |-> InitArg]}
 
 
 
-
-\* Applies the shared-memory update to the UnionFind object when Unite(x, y) is called. 
-UFUniteShared(x, y)      ==  /\ F \in UFAbsSet /\ x \in NodeSet /\ y \in NodeSet
-                             /\ \/ F' = [i \in NodeSet |-> IF F[i] = F[x] THEN F[y] ELSE F[i]]
-                                \/ F' = [i \in NodeSet |-> IF F[i] = F[y] THEN F[x] ELSE F[i]]
-          
-\* Updates to Unite/Find/SameSet object made to the abstract state by a Unite(a, b) linearizing.
-\* Returns True iff Unite(a, b) on object in state old updates state to new, with b preserved as a root.                       
-UFSUnite(old, a, b, new) == /\ old \in StateSet /\ new \in StateSet
-                            /\ a \in NodeSet /\ b \in NodeSet
-                            /\ new = [i \in NodeSet |-> IF old[i] = old[a] THEN old[b] ELSE old[i]]
+UniteAbstract(x, y) ==  /\ F \in UFAbsSet /\ x \in NodeSet /\ y \in NodeSet
+                        /\ \/ F' = [i \in NodeSet |-> IF F[i] = F[x] THEN F[y] ELSE F[i]]
+                           \/ F' = [i \in NodeSet |-> IF F[i] = F[y] THEN F[x] ELSE F[i]]
 
 
 
@@ -88,32 +62,19 @@ F1(p) == /\ pc[p] = "F1"
          
 FR(p) == /\ pc[p] = "FR"
          /\ pc' = [pc EXCEPT ![p] = "0"]
-         /\ M' = {t \in Configs: \E told \in M: /\ told.ret[p] = ret[p] 
-                                                /\ t.sigma = told.sigma
-                                                /\ t.ret = [told.ret EXCEPT ![p] = BOT]
-                                                /\ t.op = [told.op EXCEPT ![p] = BOT]
-                                                /\ t.arg = [told.arg EXCEPT ![p] = BOT]}
+         /\ M' = M \* TODO: FIX
          /\ UNCHANGED <<F, u, v, w, c, d, ret>>
          
 U1(p) == /\ pc[p] = "U1"
          /\ pc' = [pc EXCEPT ![p] = "UR"]
-         /\ UFUniteShared(c, d) 
+         /\ UniteAbstract(c, d) 
          /\ ret' = [ret EXCEPT ![p] = ACK]
-         /\ M' = {t \in Configs: \E told \in M:  /\ told.ret[p] = BOT
-                                                 /\ t.ret = [told.ret EXCEPT ![p] = ACK]
-                                                 /\ \/ UFSUnite(told.sigma, told.arg[p][1], told.arg[p][2], t.sigma)
-                                                    \/ UFSUnite(told.sigma, told.arg[p][2], told.arg[p][1], t.sigma)
-                                                 /\ t.op = told.op
-                                                 /\ t.arg = told.arg}
+         /\ M' = M
          /\ UNCHANGED <<u, v, w, c, d>>
 
 UR(p) == /\ pc[p] = "UR"
          /\ pc' = [pc EXCEPT ![p] = "0"]
-         /\ M' = {t \in Configs: \E told \in M: /\ told.ret[p] = ret[p] 
-                                                /\ t.sigma = told.sigma
-                                                /\ t.ret = [told.ret EXCEPT ![p] = BOT]
-                                                /\ t.op = [told.op EXCEPT ![p] = BOT]
-                                                /\ t.arg = [told.arg EXCEPT ![p] = BOT]}
+         /\ M' = M
          /\ UNCHANGED <<F, u, v, w, c, d, ret>>
 
 S1(p) == /\ pc[p] = "S1"
@@ -201,15 +162,11 @@ Step(p) ==  \/  F1(p)
             \/  S4(p)
             \/  SR(p)
             \/  Decide(p)
-            
 
-Next ==     \E p \in PROCESSES: Step(p)
-
-SameSetSpec == Init /\ [][Next]_varlist
 
           
 
 =============================================================================
 \* Modification History
-\* Last modified Sun Nov 02 03:06:05 IST 2025 by karunram
+\* Last modified Sun Nov 02 02:48:34 IST 2025 by karunram
 \* Created Sun Nov 02 01:20:50 IST 2025 by karunram
