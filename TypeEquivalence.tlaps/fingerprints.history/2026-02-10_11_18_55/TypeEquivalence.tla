@@ -8,7 +8,7 @@ ASSUME TFUDef == TRUE \notin U /\ FALSE \notin U
 ASSUME UNotEmpty == U # {}
 
 Ops_UF == {<<"Find", i>>: i \in U} \cup {<<"Unite", i, j>>: i, j \in U}
-Rets_UF == U \cup {ACK}
+Rets == U \cup {ACK}
 
 L_U == {P \in SUBSET [r: U, X: SUBSET U]:
             /\ \A x \in P : x.X # {}                           
@@ -18,7 +18,7 @@ L_U == {P \in SUBSET [r: U, X: SUBSET U]:
             
 delta_uf(s1, op, s2, r) ==
                /\ s1 \in L_U /\ s2 \in L_U
-               /\ op \in Ops_UF /\ r \in Rets_UF
+               /\ op \in Ops_UF /\ r \in Rets
                /\ \/ /\ op[1] = "Find"
                      /\ \E p \in s1 :
                           /\ op[2] \in p.X
@@ -66,7 +66,7 @@ Idems == {A \in [U -> U]: \A i \in U: A[A[i]] = A[i]}
 
 delta_uf_prime(s1, op, s2, r) ==
                /\ s1 \in Idems /\ s2 \in Idems
-               /\ op \in Ops_UF /\ r \in Rets_UF
+               /\ op \in Ops_UF /\ r \in Rets
                /\ \/ /\ op[1] = "Find"
                      /\ r = s1[op[2]]
                      /\ s2 = s1
@@ -160,21 +160,21 @@ LEMMA PartitionReshaping == \A P \in L_U: \A p, q \in P: (P \ {p, q}) \cup {[r |
 LEMMA Ops_UFSubset == Ops_UF \subseteq Ops_UFS
     BY DEF Ops_UF, Ops_UFS
 
-LEMMA Rets_UFubset == Rets_UF \subseteq Rets_UFS
-    BY DEF Rets_UF, Rets_UFS
+LEMMA RetSubset == Rets \subseteq Rets_UFS
+    BY DEF Rets, Rets_UFS
 
 
-LEMMA UF_UFS_Same == \A s1, s2 \in L_U: \A r \in Rets_UF: \A o \in Ops_UF: delta_uf(s1, o, s2, r) = delta_ufs(s1, o, s2, r)
-    BY Ops_UFSubset, Rets_UFubset DEF delta_uf, delta_ufs, Ops_UF, Rets_UF
+LEMMA UF_UFS_Same == \A s1, s2 \in L_U: \A r \in Rets: \A o \in Ops_UF: delta_uf(s1, o, s2, r) = delta_ufs(s1, o, s2, r)
+    BY Ops_UFSubset, RetSubset DEF delta_uf, delta_ufs, Ops_UF, Rets
 
-LEMMA UF_UFS_prime_Same == \A s1, s2 \in Idems: \A r \in Rets_UF: \A o \in Ops_UF: delta_uf_prime(s1, o, s2, r) = delta_ufs_prime(s1, o, s2, r)
-    <1> SUFFICES ASSUME NEW o \in Ops_UF, NEW s1 \in Idems, NEW s2 \in Idems, NEW r \in Rets_UF
+LEMMA UF_UFS_prime_Same == \A s1, s2 \in Idems: \A r \in Rets: \A o \in Ops_UF: delta_uf_prime(s1, o, s2, r) = delta_ufs_prime(s1, o, s2, r)
+    <1> SUFFICES ASSUME NEW o \in Ops_UF, NEW s1 \in Idems, NEW s2 \in Idems, NEW r \in Rets
         PROVE delta_uf_prime(s1, o, s2, r) = delta_ufs_prime(s1, o, s2, r)
         OBVIOUS
     <1>1. CASE o[1] = "Find"
-        BY <1>1, Ops_UFSubset, Rets_UFubset DEF delta_ufs_prime, delta_uf_prime
+        BY <1>1, Ops_UFSubset, RetSubset DEF delta_ufs_prime, delta_uf_prime
     <1>2. CASE o[1] = "Unite"
-        BY <1>2, Ops_UFSubset, Rets_UFubset DEF delta_ufs_prime, delta_uf_prime
+        BY <1>2, Ops_UFSubset, RetSubset DEF delta_ufs_prime, delta_uf_prime
     <1> QED
         BY <1>1, <1>2 DEF Ops_UF
         
@@ -293,11 +293,11 @@ THEOREM FunctionBijective == FunctionInjective /\ FunctionSurjective /\ Function
     
     
 THEOREM FunctionRespectsDeltaUF == 
-               \A s1, s2 \in L_U: \A o \in Ops_UF: \A r \in Rets_UF:
+               \A s1, s2 \in L_U: \A o \in Ops_UF: \A r \in Rets:
                     delta_uf(s1, o, s2, r) <=> delta_uf_prime(f(s1), o, f(s2), r)
   <1> SUFFICES ASSUME NEW s1 \in L_U, NEW s2 \in L_U,
                       NEW o \in Ops_UF,
-                      NEW r \in Rets_UF
+                      NEW r \in Rets
                PROVE  delta_uf(s1, o, s2, r) <=> delta_uf_prime(f(s1), o, f(s2), r)
     OBVIOUS
   <1>1. delta_uf(s1, o, s2, r) => delta_uf_prime(f(s1), o, f(s2), r)
@@ -522,13 +522,13 @@ THEOREM FunctionRespectsDeltaUFS ==
                  PROVE  delta_ufs_prime(f(s1), o, f(s2), r)
       OBVIOUS
     <2>1. CASE o[1] = "Find"
-        <3> r \in Rets_UF /\ o \in Ops_UF
-            BY <2>1, Ops_UFSubset, Rets_UFubset DEF delta_ufs, L_U, Rets_UF, Ops_UF, Ops_UFS
+        <3> r \in Rets /\ o \in Ops_UF
+            BY <2>1, Ops_UFSubset, RetSubset DEF delta_ufs, L_U, Rets, Ops_UF, Ops_UFS
         <3> QED
             BY <2>1, UF_UFS_Same, UF_UFS_prime_Same, FunctionWellDefined, FunctionRespectsDeltaUF
     <2>2. CASE o[1] = "Unite"
-        <3> r \in Rets_UF /\ o \in Ops_UF
-            BY <2>2, Ops_UFSubset, Rets_UFubset DEF delta_ufs, L_U, Rets_UF, Ops_UF, Ops_UFS
+        <3> r \in Rets /\ o \in Ops_UF
+            BY <2>2, Ops_UFSubset, RetSubset DEF delta_ufs, L_U, Rets, Ops_UF, Ops_UFS
         <3> QED
             BY <2>2, UF_UFS_Same, UF_UFS_prime_Same, FunctionWellDefined, FunctionRespectsDeltaUF
     <2>3. CASE o[1] = "SameSet"
@@ -579,11 +579,11 @@ THEOREM FunctionRespectsDeltaUFS ==
     <2>1. CASE o[1] = "Find"
         <3> o \in Ops_UF
             BY <2>1, <2>h DEF Ops_UF, Ops_UFS
-        <3>1. CASE r \in Rets_UF /\ o \in Ops_UF        
-            BY <2>1, <3>1, UF_UFS_Same, UF_UFS_prime_Same, FunctionWellDefined, FunctionRespectsDeltaUF DEF Rets_UF
-        <3>2. CASE r \notin Rets_UF
+        <3>1. CASE r \in Rets /\ o \in Ops_UF        
+            BY <2>1, <3>1, UF_UFS_Same, UF_UFS_prime_Same, FunctionWellDefined, FunctionRespectsDeltaUF DEF Rets
+        <3>2. CASE r \notin Rets
             <4> r \notin U
-                BY <2>1, <3>2, TFUDef DEF Rets_UF, Rets_UFS
+                BY <2>1, <3>2, TFUDef DEF Rets, Rets_UFS
             <4> r # f(s1)[o[2]]
                 BY <2>1, FunctionWellDefined DEF delta_ufs_prime, Idems, Ops_UF
             <4> QED
@@ -593,11 +593,11 @@ THEOREM FunctionRespectsDeltaUFS ==
     <2>2. CASE o[1] = "Unite"
         <3> o \in Ops_UF
             BY <2>2, <2>h DEF Ops_UF, Ops_UFS
-        <3>1. CASE r \in Rets_UF /\ o \in Ops_UF        
-            BY <2>2, <3>1, UF_UFS_Same, UF_UFS_prime_Same, FunctionWellDefined, FunctionRespectsDeltaUF DEF Rets_UF
-        <3>2. CASE r \notin Rets_UF
+        <3>1. CASE r \in Rets /\ o \in Ops_UF        
+            BY <2>2, <3>1, UF_UFS_Same, UF_UFS_prime_Same, FunctionWellDefined, FunctionRespectsDeltaUF DEF Rets
+        <3>2. CASE r \notin Rets
             <4> r # ACK
-                BY <2>2, <3>2 DEF Rets_UF, Rets_UFS
+                BY <2>2, <3>2 DEF Rets, Rets_UFS
             <4> QED
                 BY <2>2, <2>h DEF delta_ufs_prime
         <3> QED
@@ -634,5 +634,5 @@ THEOREM FunctionRespectsDeltaUFS ==
 
 =============================================================================
 \* Modification History
-\* Last modified Tue Feb 10 11:19:30 CST 2026 by karunram
+\* Last modified Tue Feb 10 11:18:51 CST 2026 by karunram
 \* Created Tue Jun 03 05:52:54 EDT 2025 by karunram
